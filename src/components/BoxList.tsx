@@ -1,14 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Box, Item } from '../types';
 import { BoxDetail } from './BoxDetail';
 
 interface BoxListProps {
-  boxes: {
-    id: string;
-    name: string;
-    items: string[];
-  }[];
-  onDeleteBox: (boxId: string) => void;
-  onEditBox: (boxId: string, newName: string) => void;
+  boxes: Box[];
+  onDeleteBox: (id: string) => void;
+  onEditBox: (id: string, newName: string) => void;
   onDeleteItem: (boxId: string, itemIndex: number) => void;
   onEditItem: (boxId: string, itemIndex: number, newName: string) => void;
   onAddItem: (boxId: string, itemName: string) => void;
@@ -49,7 +46,7 @@ export const BoxList = ({
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-900">{box.name}</h3>
-                  <p className="text-sm text-gray-500">{box.items.length} items</p>
+                  <p className="text-sm text-gray-500">{box.items?.length ?? 0} items</p>
                 </div>
               </div>
               <div className="hidden group-hover:flex items-center gap-1">

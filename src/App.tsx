@@ -1,18 +1,12 @@
 import { useState, useMemo, useEffect } from 'react'
 import { Session } from '@supabase/supabase-js'
 import { AddBoxForm } from './components/AddBoxForm'
-import { AddItemForm } from './components/AddItemForm'
 import { BoxList } from './components/BoxList'
 import { SearchBar } from './components/SearchBar'
 import { Auth } from './components/Auth'
 import { supabase } from './lib/supabase'
+import { Box, Item } from './types'
 import './App.css'
-
-interface Box {
-  id: string
-  name: string
-  items: string[]
-}
 
 // List of allowed email addresses
 const ALLOWED_EMAILS = [
@@ -28,12 +22,14 @@ function App() {
   const [loading, setLoading] = useState(true)
   const [showAddBox, setShowAddBox] = useState(false)
   const [session, setSession] = useState<Session | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [message, setMessage] = useState<string | null>(null)
 
   useEffect(() => {
     // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      if (session) {
+    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      setSession(currentSession)
+      if (currentSession) {
         fetchBoxes()
       } else {
         setLoading(false)
@@ -43,9 +39,9 @@ function App() {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      if (session) {
+    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession)
+      if (newSession) {
         fetchBoxes()
       }
     })
@@ -71,6 +67,7 @@ function App() {
       const boxesWithItems = boxesData.map(box => ({
         id: box.id,
         name: box.name,
+        created_at: box.created_at,
         items: itemsData
           .filter(item => item.box_id === box.id)
           .map(item => item.name)
@@ -94,7 +91,7 @@ function App() {
 
       if (error) throw error
 
-      setBoxes([{ id: data.id, name: data.name, items: [] }, ...boxes])
+      setBoxes([{ id: data.id, name: data.name, created_at: data.created_at, items: [] }, ...boxes])
       setShowAddBox(false)
     } catch (error) {
       console.error('Error adding box:', error)
@@ -145,9 +142,10 @@ function App() {
 
       setBoxes(boxes.map(box => {
         if (box.id === boxId) {
+          const currentItems = box.items || [];
           return {
             ...box,
-            items: [...box.items, itemName],
+            items: [...currentItems, data as Item],
           }
         }
         return box
@@ -213,7 +211,7 @@ function App() {
       if (error) throw error
 
       setBoxes(boxes.map(box => {
-        if (box.id === boxId) {
+        if (box.id === boxId && box.items) {
           const newItems = box.items.filter((_, i) => i !== itemIndex)
           return { ...box, items: newItems }
         }
@@ -224,13 +222,24 @@ function App() {
     }
   }
 
+  const handleSignIn = async (email: string) => {
+    setLoading(true);
+    const { error } = await supabase.auth.signInWithOtp({ email });
+    if (error) {
+      setError(error.message);
+    } else {
+      setMessage('Check your email for the login link!');
+    }
+    setLoading(false);
+  };
+
   const filteredBoxes = useMemo(() => {
     if (!searchQuery) return boxes;
     
     const query = searchQuery.toLowerCase();
     return boxes.filter(box => 
       box.name.toLowerCase().includes(query) ||
-      box.items.some(item => item.toLowerCase().includes(query))
+      (box.items?.some(item => item.name.toLowerCase().includes(query)) ?? false)
     );
   }, [boxes, searchQuery]);
 

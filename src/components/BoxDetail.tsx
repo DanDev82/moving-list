@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
+import { Box, Item } from '../types';
 
 interface BoxDetailProps {
-  box: {
-    id: string;
-    name: string;
-    items: string[];
-  };
+  box: Box;
   onClose: () => void;
-  onEditBox: (boxId: string, newName: string) => void;
-  onDeleteBox: (boxId: string) => void;
+  onEditBox: (id: string, newName: string) => void;
+  onDeleteBox: (id: string) => void;
   onEditItem: (boxId: string, itemIndex: number, newName: string) => void;
   onDeleteItem: (boxId: string, itemIndex: number) => void;
   onAddItem: (boxId: string, itemName: string) => void;
@@ -158,8 +155,8 @@ export const BoxDetail = ({
           </form>
 
           <div className="space-y-2">
-            {box.items.map((item, index) => (
-              <div key={index} className="flex items-center justify-between group bg-gray-50 p-3 rounded-md">
+            {box.items?.map((item, index) => (
+              <div key={item.id} className="flex items-center justify-between group bg-gray-50 p-3 rounded-md">
                 {editingItem === index ? (
                   <div className="flex items-center gap-2 w-full">
                     <input
@@ -186,11 +183,11 @@ export const BoxDetail = ({
                   <>
                     <div className="flex items-center">
                       <span className="w-2 h-2 bg-gray-400 rounded-full mr-2"></span>
-                      <span className="text-gray-600">{item}</span>
+                      <span className="text-gray-600">{item.name}</span>
                     </div>
                     <div className="hidden group-hover:flex items-center gap-1">
                       <button
-                        onClick={() => handleStartEditItem(index, item)}
+                        onClick={() => handleStartEditItem(index, item.name)}
                         className="text-blue-600 hover:text-blue-800 p-1"
                         title="Edit item"
                       >
@@ -212,7 +209,7 @@ export const BoxDetail = ({
                 )}
               </div>
             ))}
-            {box.items.length === 0 && (
+            {(!box.items || box.items.length === 0) && (
               <p className="text-gray-500 italic text-center py-4">No items in this box</p>
             )}
           </div>
