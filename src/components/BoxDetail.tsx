@@ -8,7 +8,7 @@ interface BoxDetailProps {
   onDeleteBox: (id: string) => void;
   onEditItem: (boxId: string, itemIndex: number, newName: string) => void;
   onDeleteItem: (boxId: string, itemIndex: number) => void;
-  onAddItem: (boxId: string, itemName: string) => void;
+  onAddItem: (itemName: string, boxId: string) => void;
 }
 
 export const BoxDetail = ({ 
@@ -49,7 +49,7 @@ export const BoxDetail = ({
   const handleAddItem = (e: React.FormEvent) => {
     e.preventDefault();
     if (newItemName.trim()) {
-      onAddItem(box.id, newItemName.trim());
+      onAddItem(newItemName.trim(), box.id);
       setNewItemName('');
     }
   };
