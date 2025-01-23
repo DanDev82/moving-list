@@ -132,7 +132,7 @@ function App() {
 
   const handleAddItem = async (boxId: string, itemName: string) => {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('items')
         .insert([{ name: itemName, box_id: boxId }])
         .select()
@@ -145,7 +145,7 @@ function App() {
           const currentItems = box.items || [];
           return {
             ...box,
-            items: [...currentItems, data as Item],
+            items: [...currentItems, { id: Date.now().toString(), name: itemName, box_id: boxId, created_at: new Date().toISOString() }],
           }
         }
         return box
