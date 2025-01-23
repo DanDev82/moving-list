@@ -1,5 +1,6 @@
+/** @jsxImportSource react */
 import { useState } from 'react';
-import { Box, Item } from '../types';
+import { Box } from '../types';
 import { BoxDetail } from './BoxDetail';
 
 interface BoxListProps {

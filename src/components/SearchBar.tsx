@@ -1,3 +1,6 @@
+/** @jsxImportSource react */
+import type { ChangeEvent } from 'react'
+
 interface SearchBarProps {
   onSearch: (query: string) => void;
 }

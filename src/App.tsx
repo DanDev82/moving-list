@@ -5,7 +5,7 @@ import { BoxList } from './components/BoxList'
 import { SearchBar } from './components/SearchBar'
 import { Auth } from './components/Auth'
 import { supabase } from './lib/supabase'
-import { Box, Item } from './types'
+import { Box } from './types'
 import './App.css'
 
 // List of allowed email addresses
@@ -70,7 +70,12 @@ function App() {
         created_at: box.created_at,
         items: itemsData
           .filter(item => item.box_id === box.id)
-          .map(item => item.name)
+          .map(item => ({
+            id: item.id,
+            name: item.name,
+            box_id: item.box_id,
+            created_at: item.created_at
+          }))
       }))
 
       setBoxes(boxesWithItems)
@@ -135,8 +140,6 @@ function App() {
       const { error } = await supabase
         .from('items')
         .insert([{ name: itemName, box_id: boxId }])
-        .select()
-        .single()
 
       if (error) throw error
 
@@ -145,7 +148,12 @@ function App() {
           const currentItems = box.items || [];
           return {
             ...box,
-            items: [...currentItems, { id: Date.now().toString(), name: itemName, box_id: boxId, created_at: new Date().toISOString() }],
+            items: [...currentItems, { 
+              id: Date.now().toString(), 
+              name: itemName, 
+              box_id: boxId, 
+              created_at: new Date().toISOString() 
+            }],
           }
         }
         return box
@@ -178,11 +186,12 @@ function App() {
 
       setBoxes(boxes.map(box => {
         if (box.id === boxId) {
-          const newItems = [...box.items]
-          newItems[itemIndex] = newName
-          return { ...box, items: newItems }
+          const currentItems = box.items || [];
+          const newItems = [...currentItems];
+          newItems[itemIndex] = { ...newItems[itemIndex], name: newName };
+          return { ...box, items: newItems };
         }
-        return box
+        return box;
       }))
     } catch (error) {
       console.error('Error editing item:', error)
