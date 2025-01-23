@@ -88,15 +88,22 @@ function App() {
 
   const handleAddBox = async (boxName: string) => {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('boxes')
         .insert([{ name: boxName }])
-        .select()
-        .single()
 
       if (error) throw error
 
-      setBoxes([{ id: data.id, name: data.name, created_at: data.created_at, items: [] }, ...boxes])
+      // Fetch the newly created box to get its ID and created_at
+      const { data: newBox, error: fetchError } = await supabase
+        .from('boxes')
+        .select()
+        .eq('name', boxName)
+        .single()
+
+      if (fetchError) throw fetchError
+
+      setBoxes([{ id: newBox.id, name: newBox.name, created_at: newBox.created_at, items: [] }, ...boxes])
       setShowAddBox(false)
     } catch (error) {
       console.error('Error adding box:', error)
@@ -135,7 +142,7 @@ function App() {
     }
   }
 
-  const handleAddItem = async (boxId: string, itemName: string) => {
+  const handleAddItem = async (itemName: string, boxId: string) => {
     try {
       const { error } = await supabase
         .from('items')
@@ -145,15 +152,15 @@ function App() {
 
       setBoxes(boxes.map(box => {
         if (box.id === boxId) {
-          const currentItems = box.items || [];
+          const currentItems = box.items || []
           return {
             ...box,
-            items: [...currentItems, { 
-              id: Date.now().toString(), 
-              name: itemName, 
-              box_id: boxId, 
-              created_at: new Date().toISOString() 
-            }],
+            items: [...currentItems, {
+              id: Date.now().toString(),
+              name: itemName,
+              box_id: boxId,
+              created_at: new Date().toISOString()
+            }]
           }
         }
         return box
